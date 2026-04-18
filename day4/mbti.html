@@ -50,6 +50,7 @@
             font-weight: 800;
             margin-bottom: 1rem;
             color: var(--primary-color);
+            word-break: keep-all; /* 단어 단위로 줄바꿈 방지 */
         }
 
         p.description {
@@ -72,6 +73,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 8px 15px rgba(123, 97, 255, 0.3);
             width: 100%;
+            white-space: nowrap; /* 버튼 텍스트 한 줄 고정 */
         }
 
         .start-btn:hover {
@@ -94,6 +96,168 @@
                 transform: translateY(0);
             }
         }
+
+        /* 질문 화면 스타일 */
+        #question-screen, #result-screen {
+            display: none;
+            width: 100%;
+        }
+
+        .q-num {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .q-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2.5rem;
+            color: var(--text-main);
+            word-break: keep-all;
+            line-height: 1.4;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .option-btn {
+            background-color: rgba(255, 255, 255, 0.5);
+            color: var(--text-main);
+            border: 2px solid rgba(123, 97, 255, 0.2);
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            word-break: keep-all;
+        }
+
+        .option-btn:hover {
+            background-color: rgba(123, 97, 255, 0.1);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        /* 프로그레스 바 */
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 결과 화면 스타일 */
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-sub);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        #mbti-image {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin: 1rem auto;
+            border: 4px solid rgba(123, 97, 255, 0.2);
+            background-color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            display: block;
+        }
+
+        #mbti-result {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #mbti-nickname {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+        }
+
+        #mbti-description {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: var(--text-sub);
+            word-break: keep-all;
+        }
+
+        .joke-box {
+            background-color: rgba(123, 97, 255, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.5rem;
+            border-radius: 0 15px 15px 0;
+            margin-bottom: 2.5rem;
+            text-align: left;
+        }
+
+        .joke-q {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .joke-a {
+            color: var(--primary-color);
+            font-weight: 600;
+            line-height: 1.4;
+            word-break: keep-all;
+        }
+
+        /* 반응형 디자인 (모바일 화면) */
+        @media (max-width: 480px) {
+            .container {
+                padding: 3rem 2rem;
+            }
+            h1 {
+                font-size: 1.7rem; /* 모바일에서 제목 크기 축소 */
+            }
+            .description {
+                font-size: 1rem;
+            }
+            .start-btn {
+                font-size: 1.1rem; /* 버튼 글씨 축소 */
+                padding: 1rem 2rem;
+            }
+            .q-text {
+                font-size: 1.4rem;
+            }
+            .option-btn {
+                font-size: 1rem;
+                padding: 1rem;
+            }
+            #mbti-result {
+                font-size: 3rem;
+            }
+            #mbti-nickname {
+                font-size: 1.3rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -102,5 +266,200 @@
         <p class="description">8개의 간단한 질문으로 알아보는<br>나의 MBTI 유형</p>
         <button class="start-btn" id="start-btn">테스트 시작하기</button>
     </div>
+
+    <div class="container" id="question-screen">
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="q-num" id="q-num">Q1.</div>
+        <h2 class="q-text" id="q-text">주말에 약속이 없다면?</h2>
+        <div class="options-container">
+            <button class="option-btn" onclick="nextQuestion()">집에 있는다.</button>
+            <button class="option-btn" onclick="nextQuestion()">밖에 나가서 사람들을 만난다.</button>
+        </div>
+    </div>
+
+    <div class="container" id="result-screen">
+        <p class="subtitle">당신의 유형은...</p>
+        <img id="mbti-image" src="" alt="MBTI Character">
+        <h1 id="mbti-result">MBTI</h1>
+        <h3 id="mbti-nickname">별명</h3>
+        <p id="mbti-description">설명</p>
+        
+        <div class="joke-box">
+            <p class="joke-q">상황: "나 우울해서 화분 샀어..."</p>
+            <p class="joke-a" id="mbti-joke">응답 예시</p>
+        </div>
+
+        <button class="start-btn" onclick="location.reload()">테스트 다시하기</button>
+    </div>
+
+    <script>
+        // MBTI 16가지 유형 데이터
+        const mbtiData = {
+            "ESTJ": { nickname: "엄격한 관리자", desc: "철저하고 현실적인 리더형. 계획과 규칙을 중요하게 생각합니다.", joke: "A: 화분에 물은 얼마나 자주 줘야하는데? 며칠 주기로?" },
+            "ESFJ": { nickname: "사교적인 외교관", desc: "타인을 돕는 것을 즐기는 인싸. 주변 사람들을 세심하게 챙깁니다.", joke: "A: 무슨 일 있어?! ㅠㅠ 밥은 먹었고? 일단 만나자!" },
+            "ENFJ": { nickname: "정의로운 사회운동가", desc: "열정적으로 남을 이끄는 리더. 타인의 성장을 돕는 데 기쁨을 느낍니다.", joke: "A: 우울할 땐 내가 짱이지! 이따 만나서 얘기해!" },
+            "ENTJ": { nickname: "대담한 통솔자", desc: "목표 달성을 위해 달리는 전략가. 단호하고 효율적인 판단을 내립니다.", joke: "A: 우울한데 화분을 왜 사? 기분 전환에 통계적으로 도움이 돼?" },
+            "ESTP": { nickname: "모험을 즐기는 사업가", desc: "스릴을 즐기는 현실주의자. 임기응변에 강하고 활동적입니다.", joke: "A: 오 무슨 꽃? 오늘 술이나 한잔 하러 갈래?" },
+            "ESFP": { nickname: "자유로운 영혼의 연예인", desc: "에너지가 넘치는 분위기 메이커. 즉흥적이고 삶을 즐기는 편입니다.", joke: "A: 헐 ㅠㅠ 화분 사진 보여줘!! 예쁘겠다!" },
+            "ENFP": { nickname: "재기발랄한 활동가", desc: "상상력이 풍부한 에너자이저. 호기심이 많고 새로운 시도를 좋아합니다.", joke: "A: 나도 어제 식물 샀는데!! 우리 식물 친구 만들어줄까?!" },
+            "ENTP": { nickname: "뜨거운 논쟁을 즐기는 변론가", desc: "새로운 아이디어가 넘치는 발명가. 지적인 논쟁을 즐깁니다.", joke: "A: 우울함과 식물 구매의 상관관계에 대해 어떻게 생각해?" },
+            "ISTJ": { nickname: "청렴결백한 논리주의자", desc: "책임감이 강하고 규칙을 준수하는 모범생. 한 번 시작한 일은 끝을 봅니다.", joke: "A: 햇빛 잘 들고 통풍이 잘 되는 곳에 둬야겠다." },
+            "ISFJ": { nickname: "용감한 수호자", desc: "조용히 타인을 챙기는 헌신적인 성격. 기억력이 좋고 세심합니다.", joke: "A: 괜찮아? ㅠㅠ 무슨 일인지 말해봐. 내가 다 들어줄게." },
+            "INFJ": { nickname: "선의의 옹호자", desc: "통찰력이 뛰어난 이상주의자. 사람에 대한 깊은 공감 능력을 가졌습니다.", joke: "A: 식물이 조용히 자라는 걸 보면서 마음이 조금 평온해졌으면 좋겠다..." },
+            "INTJ": { nickname: "용의주도한 전략가", desc: "독립적이고 분석적인 완벽주의자. 전체적인 시스템과 원리를 파악합니다.", joke: "A: 식물 가꾸기가 우울증 완화에 과학적으로 도움이 되긴 해." },
+            "ISTP": { nickname: "만능 재주꾼", desc: "상황 적응력이 뛰어난 현실주의자. 도구 사용에 능숙하고 과묵합니다.", joke: "A: 무슨 화분 샀는데? 물 너무 많이 줘서 죽이지나 마라." },
+            "ISFP": { nickname: "호기심 많은 예술가", desc: "온화하고 예술적인 감각이 뛰어난 성격. 현재의 순간을 즐깁니다.", joke: "A: 우와 예쁘겠다... 나도 식물 키워볼까 ㅠㅠ" },
+            "INFP": { nickname: "열정적인 중재자", desc: "상상력이 풍부한 낭만주의자. 본인만의 깊은 내면 세계를 가졌습니다.", joke: "A: ㅠㅠ... (같이 슬퍼하며 이미 화분에게 어울리는 이름을 지어주고 있음)" },
+            "INTP": { nickname: "논리적인 사색가", desc: "호기심 많고 분석적인 사색가. 새로운 지식을 탐구하는 것을 좋아합니다.", joke: "A: 광합성 효율이 좋은 식물이야? 실내에서 키우기 적합해?" }
+        };
+
+        // E, S, T, J 점수 초기화
+        let scores = { E: 0, S: 0, T: 0, J: 0 };
+        let currentQIndex = 0;
+        let gameQuestions = []; // 현재 게임에서 쓰일 8개 질문
+
+        // 질문 데이터 셋 (지표당 4개씩, 총 16개 풀)
+        const questionPool = {
+            E: [
+                { q: "주말에 약속이 없다면?", a: { text: "집에 있는다.", type: "" }, b: { text: "밖에 나가서 사람들을 만난다.", type: "E" } },
+                { q: "새로운 모임에 나갔을 때 나는?", a: { text: "누군가 말을 걸어줄 때까지 조용히 분위기를 살핀다.", type: "" }, b: { text: "먼저 사람들에게 다가가 대화를 주도한다.", type: "E" } },
+                { q: "에너지를 충전하는 방식은?", a: { text: "혼자만의 조용한 시간을 보낸다.", type: "" }, b: { text: "친구들과 왁자지껄 떠들며 논다.", type: "E" } },
+                { q: "엘리베이터에 이웃과 단둘이 탔다면?", a: { text: "가벼운 목례 후 조용히 스마트폰을 본다.", type: "" }, b: { text: "먼저 밝게 인사하며 스몰토크를 시작한다.", type: "E" } }
+            ],
+            S: [
+                { q: "업무나 과제를 할 때 나의 스타일은?", a: { text: "매뉴얼대로 꼼꼼하고 정확하게 처리한다.", type: "S" }, b: { text: "새로운 방식을 찾아 창의적으로 해결한다.", type: "" } },
+                { q: "세상을 바라보는 나의 관점은?", a: { text: "나무보다 숲을 먼저 본다. (전체 흐름 파악)", type: "" }, b: { text: "숲보다 나무를 먼저 본다. (세부 디테일 파악)", type: "S" } },
+                { q: "사과를 보면 생각나는 것은?", a: { text: "빨갛다, 맛있다, 동그랗다.", type: "S" }, b: { text: "백설공주, 뉴턴, 애플 로고.", type: "" } },
+                { q: "멋진 풍경을 보았을 때 나의 생각은?", a: { text: "풍경의 아름다운 모습 자체를 감상한다.", type: "S" }, b: { text: "이 풍경에 얽힌 이야기나 영감을 상상해본다.", type: "" } }
+            ],
+            T: [
+                { q: "친구가 우울하다며 연락이 왔을 때 나의 반응은?", a: { text: "왜 우울한지 이유를 묻고 해결책을 같이 고민한다.", type: "T" }, b: { text: "우선 공감해주고 따뜻한 위로의 말을 건넨다.", type: "" } },
+                { q: "누군가의 부탁을 거절해야 할 때 나는?", a: { text: "상황을 객관적으로 설명하며 명확하게 거절한다.", type: "T" }, b: { text: "상대방이 상처받지 않게 최대한 돌려서 부드럽게 거절한다.", type: "" } },
+                { q: "대화를 하던 중 의견 충돌이 생겼을 때?", a: { text: "논리적 근거를 바탕으로 옳고 그름을 가린다.", type: "T" }, b: { text: "서로의 감정이 상하지 않도록 타협점을 찾는다.", type: "" } },
+                { q: "나쁜 소식을 전해야 할 때 나의 태도는?", a: { text: "사실 그대로를 먼저 전달하는 것이 중요하다고 생각한다.", type: "T" }, b: { text: "상대방의 충격을 최소화하도록 완곡하게 표현한다.", type: "" } }
+            ],
+            J: [
+                { q: "여행을 떠나기 전 나의 모습은?", a: { text: "시간 단위로 세세한 계획과 일정을 세운다.", type: "J" }, b: { text: "대략적인 목적지만 정하고 발길 닿는 대로 간다.", type: "" } },
+                { q: "마감 기한이 있는 일이 주어졌을 때 나는?", a: { text: "미리미리 계획을 세워 조금씩 해둔다.", type: "J" }, b: { text: "마감 직전까지 미루다 엄청난 집중력으로 끝낸다.", type: "" } },
+                { q: "주말 일정을 짤 때 나는?", a: { text: "오후 2시 카페, 4시 영화식으로 구체적으로 짠다.", type: "J" }, b: { text: "이번 주말엔 친구 만나기! 정도로 넉넉하게 생각한다.", type: "" } },
+                { q: "방 청소를 할 때 나의 방식은?", a: { text: "물건은 항상 정해진 자리에 깔끔하게 정리되어야 한다.", type: "J" }, b: { text: "조금 어질러져 있어도 어디에 있는지 다 안다.", type: "" } }
+            ]
+        };
+
+        // 배열 섞기 유틸 함수
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 게임 초기화: 질문 8개 무작위 추출 및 섞기
+        function initGame() {
+            scores = { E: 0, S: 0, T: 0, J: 0 };
+            currentQIndex = 0;
+            gameQuestions = [];
+
+            // 각 지표에서 2개씩 추출
+            ['E', 'S', 'T', 'J'].forEach(type => {
+                let shuffledPool = shuffleArray([...questionPool[type]]);
+                gameQuestions.push(shuffledPool[0], shuffledPool[1]);
+            });
+
+            // 추출된 8개 질문 전체 섞기
+            shuffleArray(gameQuestions);
+        }
+
+
+        const startScreen = document.getElementById('start-screen');
+        const questionScreen = document.getElementById('question-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const qNumEl = document.getElementById('q-num');
+        const qTextEl = document.getElementById('q-text');
+        const optionBtns = document.querySelectorAll('.option-btn');
+        const progressBar = document.getElementById('progress-bar');
+
+        // 시작 버튼 클릭 이벤트
+        document.getElementById('start-btn').addEventListener('click', () => {
+            initGame(); // 랜덤 질문 세팅
+            startScreen.style.display = 'none';
+            questionScreen.style.display = 'block';
+            renderQuestion();
+        });
+
+        // 질문 렌더링 함수
+        function renderQuestion() {
+            const currentQ = gameQuestions[currentQIndex];
+            
+            // 화면 내용 업데이트
+            qNumEl.innerText = `Q${currentQIndex + 1}.`;
+            qTextEl.innerText = currentQ.q;
+            
+            // 선택지 A와 B 랜덤 섞기
+            let options = [currentQ.a, currentQ.b];
+            shuffleArray(options);
+            
+            // 버튼에 텍스트 및 클릭 이벤트(점수 로직 포함) 바인딩
+            optionBtns[0].innerText = options[0].text;
+            optionBtns[0].onclick = () => handleAnswer(options[0].type);
+            
+            optionBtns[1].innerText = options[1].text;
+            optionBtns[1].onclick = () => handleAnswer(options[1].type);
+
+            // 프로그레스 바 업데이트
+            const progressPercent = (currentQIndex / gameQuestions.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+        }
+
+        // 답변 선택 시 점수 계산 로직
+        function handleAnswer(type) {
+            // E, S, T, J 등 타입이 있으면 해당 점수를 1 올림
+            if (type !== "") {
+                scores[type]++;
+            }
+            nextQuestion();
+        }
+
+        // 다음 질문으로 넘어가기
+        function nextQuestion() {
+            currentQIndex++;
+
+            if (currentQIndex < gameQuestions.length) {
+                renderQuestion();
+            } else {
+                calculateResult();
+            }
+        }
+
+        // 최종 MBTI 결과 판별 및 화면 이동
+        function calculateResult() {
+            let finalMBTI = "";
+            
+            // 총 8문제(지표당 2문제)이므로, 점수가 1 이상이면 해당 지표(E,S,T,J), 아니면 반대 지표(I,N,F,P)로 판별
+            finalMBTI += (scores.E >= 1) ? "E" : "I";
+            finalMBTI += (scores.S >= 1) ? "S" : "N";
+            finalMBTI += (scores.T >= 1) ? "T" : "F";
+            finalMBTI += (scores.J >= 1) ? "J" : "P";
+
+            // 결과 화면 렌더링
+            const resultData = mbtiData[finalMBTI];
+            
+            document.getElementById('mbti-image').src = `images/${finalMBTI}.png`;
+            document.getElementById('mbti-result').innerText = finalMBTI;
+            document.getElementById('mbti-nickname').innerText = resultData.nickname;
+            document.getElementById('mbti-description').innerText = resultData.desc;
+            document.getElementById('mbti-joke').innerText = resultData.joke;
+            
+            questionScreen.style.display = 'none';
+            resultScreen.style.display = 'block';
+            
+            // 프로그레스 바 100% 채우기
+            progressBar.style.width = '100%';
+        }
+    </script>
 </body>
 </html>
