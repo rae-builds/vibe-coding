@@ -1,414 +1,147 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>오늘도 힘내세요!</title>
-    <link rel="stylesheet" as="style" crossorigin
-        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <title>Rae's Vibe Coding Portfolio</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        body,
-        html {
-            height: 100%;
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --text-main: #2d3436;
+        }
+
+        body, html {
+            min-height: 100%;
             margin: 0;
+            font-family: 'Pretendard', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            /* 밝은 회색 그라데이션 */
-            color: #2d3436;
-            overflow-x: hidden;
+            align-items: center;
         }
 
         .header {
-            background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.2rem 4rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            z-index: 10;
-        }
-
-        .header h2 {
-            margin: 0;
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            /* 아이콘과 텍스트 사이 간격 */
-        }
-
-        .header-icon {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-            /* 제목 색상과 동일하게 유지 */
-        }
-
-        .nav-menu {
-            display: flex;
-            gap: 2.5rem;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .nav-item {
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: opacity 0.3s ease;
-            cursor: pointer;
-        }
-
-        .nav-item:hover {
-            opacity: 0.8;
-        }
-
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 3rem 1rem;
-            gap: 4rem;
-            position: relative;
-            overflow-y: auto;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            /* 제목 굵게 */
-            color: #495057;
-            margin-bottom: 1.5rem;
+            width: 100%;
+            padding: 2rem;
             text-align: center;
+            margin-bottom: 2rem;
+            margin-top: 2rem;
         }
 
-        .reviews-container {
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0;
+            color: #2d3436;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: #636e72;
+            margin-top: 1rem;
+        }
+
+        .portfolio-grid {
             display: flex;
             gap: 2rem;
             justify-content: center;
             flex-wrap: wrap;
+            max-width: 1000px;
+            padding: 0 2rem 4rem 2rem;
         }
 
-        .review-card {
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+        .app-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.9);
             border-radius: 24px;
-            padding: 2rem;
+            padding: 2.5rem 2rem;
             width: 300px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.03);
             text-align: center;
-            transition: transform 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .review-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.05);
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.9);
         }
 
-        .profile-img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-bottom: 1rem;
-            border: 3px solid white;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        .app-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
         }
 
-        .review-text {
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+        }
+
+        .app-desc {
             font-size: 1rem;
-            color: #495057;
-            line-height: 1.6;
-            font-weight: 400;
-            /* 본문 일반 굵기 */
-        }
-
-        .reviewer-name {
-            margin-top: 1rem;
-            font-weight: 600;
-            color: #2d3436;
+            color: #636e72;
+            line-height: 1.5;
         }
 
         .footer {
-            background-color: #e9ecef;
-            color: #6c757d;
+            margin-top: auto;
+            padding: 2rem;
             text-align: center;
-            padding: 1.2rem 0;
-            font-size: 0.95rem;
+            color: #636e72;
             font-weight: 500;
-            z-index: 10;
         }
 
-        .footer p {
-            margin: 0;
-        }
-
-        /* 배경에 부드러운 움직임을 주는 요소 추가 */
-        body::before {
-            content: '';
-            position: absolute;
-            width: 140vw;
-            height: 140vh;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(233, 236, 239, 0) 70%);
-            animation: moveBackground 15s linear infinite;
-            z-index: -1;
-        }
-
-        .container {
-            text-align: center;
-            padding: 4rem 6rem;
-            background: rgba(255, 255, 255, 0.4);
-            /* 밝은 테마에 맞는 화이트 글래스 */
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-radius: 40px;
-            box-shadow:
-                0 10px 30px rgba(0, 0, 0, 0.03),
-                0 30px 60px rgba(0, 0, 0, 0.05),
-                inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            animation: slideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
-        }
-
-        .container:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow:
-                0 15px 40px rgba(0, 0, 0, 0.05),
-                0 40px 80px rgba(0, 0, 0, 0.08);
-        }
-
-        h1 {
-            font-size: 48px;
-            font-weight: 800;
-            margin: 0 0 2.5rem 0;
-            letter-spacing: -0.03em;
-            background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0px 4px 12px rgba(0, 0, 0, 0.1));
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            /* 투명도 전환 추가 */
-            cursor: default;
-        }
-
-        h1.fade-out {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 1.2rem 2.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #ffffff;
-            background-image: none;
-            background-color: #81c784;
-            /* 주 색상 (연한 녹색) */
-            border: none;
-            border-radius: 16px;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(129, 199, 132, 0.3);
-            transition: all 0.4s ease;
-            text-decoration: none;
-            outline: none;
-        }
-
-        .btn:hover {
-            transform: translateY(-5px) scale(1.08);
-            /* 더 크게 확대 */
-            background-color: #2e7d32;
-            /* 어두운 녹색으로 전환 */
-            box-shadow: 0 15px 35px rgba(46, 125, 50, 0.4);
-            filter: brightness(1.1);
-            /* 약간의 밝기 추가로 생동감 부여 */
-        }
-
-        .btn:active {
-            transform: translateY(-1px) scale(0.98);
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(40px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        @keyframes moveBackground {
-            0% {
-                transform: translate(-10%, -10%);
-            }
-
-            50% {
-                transform: translate(0%, 0%);
-            }
-
-            100% {
-                transform: translate(-10%, -10%);
-            }
-        }
-
-        /* 반응형 디자인 (768px 이하) */
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                /* 세로로 쌓기 */
-                padding: 1.5rem 1rem;
-                gap: 1.2rem;
-            }
-
-            .nav-menu {
-                flex-direction: column;
-                /* 메뉴 항목들도 세로로 쌓기 */
-                gap: 0.8rem;
-                align-items: center;
-            }
-
-            .nav-item {
-                font-size: 1rem;
-            }
-
-            .main-content {
-                padding: 2rem 1rem;
-                gap: 3rem;
-            }
-
-            .container {
-                padding: 2.5rem 1.5rem;
-                /* 모바일 여백 축소 */
-                border-radius: 30px;
-            }
-
-            h1 {
-                font-size: 32px;
-                /* 제목 크기 축소 */
-                margin-bottom: 2rem;
-            }
-
-            .review-text {
-                font-size: 0.95rem;
-                /* 본문 폰트 약간 축소 */
-            }
-
-            .btn {
-                padding: 1.4rem 3.5rem;
-                /* 터치하기 좋게 패딩 증가 */
-                width: 100%;
-                /* 모바일에서는 가로를 꽉 채우게 */
-                max-width: 280px;
-                font-size: 1.2rem;
-            }
-
-            .review-card {
-                width: 100%;
-                /* 리뷰 카드가 가로를 가득 채우도록 */
-                max-width: 320px;
-            }
-
-            .section-title {
-                font-size: 1.3rem;
-            }
+            h1 { font-size: 2.2rem; }
+            .app-card { width: 100%; max-width: 340px; }
         }
     </style>
 </head>
-
 <body>
-    <header class="header">
-        <h2>
-            <svg class="header-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z" />
-            </svg>
-            나의 첫 서비스
-        </h2>
-        <nav>
-            <ul class="nav-menu">
-                <li><a href="#" class="nav-item">소개</a></li>
-                <li><a href="#" class="nav-item">기능</a></li>
-                <li><a href="#" class="nav-item">문의</a></li>
-            </ul>
-        </nav>
-    </header>
 
-    <main class="main-content">
-        <!-- 핵심 기능 소개 섹션 -->
-        <section class="feature-section">
-            <h3 class="section-title">핵심 기능 소개</h3>
-            <div class="container">
-                <h1 id="main-text">오늘도 힘내세요!</h1>
-                <button class="btn" id="next-btn">다음 문장 보기</button>
-            </div>
-        </section>
+    <div class="header">
+        <h1>🚀 나의 바이브코딩 프로젝트</h1>
+        <p class="subtitle">그동안 만든 웹 어플리케이션을 한 곳에 모았습니다.</p>
+    </div>
 
-        <!-- 사용자 후기 섹션 -->
-        <section class="review-section">
-            <h3 class="section-title">사용자 후기</h3>
-            <div class="reviews-container">
-                <div class="review-card">
-                    <img src="./images/avatar1.png" alt="사용자 1" class="profile-img">
-                    <p class="review-text">"이 서비스 덕분에 매일 아침 큰 힘을 얻고 시작합니다. 정말 최고예요!"</p>
-                    <p class="reviewer-name">- 김지훈</p>
-                </div>
-                <div class="review-card">
-                    <img src="./images/avatar2.png" alt="사용자 2" class="profile-img">
-                    <p class="review-text">"문장이 바뀔 때마다 기분이 좋아지는 마법 같은 기능이네요. 강력 추천합니다."</p>
-                    <p class="reviewer-name">- 이수진</p>
-                </div>
-            </div>
-        </section>
-    </main>
+    <div class="portfolio-grid">
+        <!-- 1. 점심 메뉴 추천기 -->
+        <a href="./day3/menu.html" class="app-card">
+            <div class="app-icon">🍱</div>
+            <div class="app-title">점심 메뉴 투표앱</div>
+            <div class="app-desc">구글 시트와 연동되어 실시간으로 메뉴를 투표하고 결과를 확인하는 웹 앱</div>
+        </a>
 
-    <footer class="footer">
-        <p>Ⓒ 2025 my service</p>
-    </footer>
+        <!-- 2. 나만의 MBTI 테스트 -->
+        <a href="./day4/mbti.html" class="app-card">
+            <div class="app-icon">🧠</div>
+            <div class="app-title">동적 MBTI 테스트</div>
+            <div class="app-desc">질문 순서와 선택지가 랜덤으로 섞이며, 16종의 귀여운 캐릭터 결과가 나오는 앱</div>
+        </a>
 
-    <script>
-        const sentences = [
-            "오늘도 힘내세요!",
-            "오늘도 해냈어요!",
-            "조금씩 나아지고 있어요.",
-            "이대로 계속 가봅시다."
-        ];
-        let currentIndex = 0;
+        <!-- 3. AI 감정 일기 -->
+        <a href="./day6/ai-diary.html" class="app-card">
+            <div class="app-icon">📔</div>
+            <div class="app-title">AI 감정 일기</div>
+            <div class="app-desc">Web Speech API로 음성 입력을 받고, Gemini AI가 따뜻한 위로를 건네주는 다이어리</div>
+        </a>
+    </div>
 
-        const textElement = document.getElementById('main-text');
-        const btnElement = document.getElementById('next-btn');
+    <div class="footer">
+        <p>✨ Created by Vibe Coding</p>
+    </div>
 
-        btnElement.addEventListener('click', () => {
-            // 페이드 아웃 효과
-            textElement.classList.add('fade-out');
-
-            setTimeout(() => {
-                // 문장 변경
-                currentIndex = (currentIndex + 1) % sentences.length;
-                textElement.innerText = sentences[currentIndex];
-
-                // 버튼 테마는 CSS의 기본(주 색상)/호버(보조 색상)를 따르므로 JS 변경 로직 삭제
-
-                // 페이드 인 효과
-                textElement.classList.remove('fade-out');
-            }, 300);
-        });
-    </script>
 </body>
-
 </html>
