@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 감정 일기</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        :root {
+            --primary-color: #4a90e2; /* 감정 일기에 어울리는 차분하고 신뢰감 있는 블루 */
+            --primary-hover: #357abd;
+            --secondary-color: #f5a623; /* 음성 입력 등 보조 버튼용 따뜻한 색상 */
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --text-main: #333333;
+            --text-sub: #666666;
+            --box-bg: #f5f6fa;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            min-height: 100%;
+            font-family: 'Pretendard', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            width: 100%;
+            max-width: 600px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 1.2rem;
+            font-family: 'Pretendard', sans-serif;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            background-color: #ffffff;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            resize: vertical;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #b2bec3;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-voice {
+            background-color: white;
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-voice:hover {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+            background-color: rgba(245, 166, 35, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .btn-analyze {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-analyze:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .response-section {
+            margin-top: 1rem;
+            border-top: 2px dashed var(--border-color);
+            padding-top: 2.5rem;
+        }
+
+        .response-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .response-box {
+            background-color: var(--box-bg);
+            padding: 1.8rem;
+            border-radius: 16px;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--text-sub);
+            min-height: 120px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        /* 반응형 */
+        @media (max-width: 480px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+            .button-group {
+                flex-direction: column;
+            }
+            h1 {
+                font-size: 1.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>오늘의 하루는 어땠나요?</h1>
+        
+        <div class="input-group">
+            <textarea id="diary-input" placeholder="오늘 있었던 일이나 느꼈던 감정을 자유롭게 적어주세요."></textarea>
+            
+            <div class="button-group">
+                <button class="btn btn-voice" id="voice-btn">
+                    🎤 음성으로 입력하기
+                </button>
+                <button class="btn btn-analyze" id="analyze-btn">
+                    ✨ 분석 요청하기
+                </button>
+            </div>
+        </div>
+
+        <div class="response-section">
+            <div class="response-title">🤖 AI의 답변</div>
+            <div class="response-box" id="ai-response">
+                여기에 AI의 답변이 표시됩니다.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const voiceBtn = document.getElementById('voice-btn');
+        const diaryInput = document.getElementById('diary-input');
+        
+        let isRecording = false;
+
+        // 브라우저가 Web Speech API를 지원하는지 확인 (크롬 등은 webkit 접두사 필요)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            
+            // 한국어 설정 및 중간 결과 생략 (최종 문장만 입력)
+            recognition.lang = 'ko-KR';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            // 음성 인식 시작될 때
+            recognition.onstart = function() {
+                isRecording = true;
+                voiceBtn.innerText = '🔴 음성 인식중...';
+                voiceBtn.style.color = '#e74c3c';
+                voiceBtn.style.borderColor = '#e74c3c';
+                voiceBtn.style.backgroundColor = 'rgba(231, 76, 60, 0.05)';
+            };
+
+            // 음성 인식이 완료되어 결과를 받았을 때
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                
+                // 기존 텍스트가 있다면 띄어쓰기 후 이어붙임
+                if (diaryInput.value) {
+                    diaryInput.value += ' ' + transcript;
+                } else {
+                    diaryInput.value = transcript;
+                }
+            };
+
+            // 음성 인식이 끝났을 때 (자동 종료 혹은 강제 종료)
+            recognition.onend = function() {
+                isRecording = false;
+                voiceBtn.innerText = '🎤 음성으로 입력하기';
+                // 스타일 원상 복구
+                voiceBtn.style.color = '';
+                voiceBtn.style.borderColor = '';
+                voiceBtn.style.backgroundColor = '';
+            };
+
+            // 에러 발생 시 처리
+            recognition.onerror = function(event) {
+                console.error("음성 인식 에러:", event.error);
+                alert("음성 인식 중 오류가 발생했습니다. 마이크 권한을 확인해주세요.");
+            };
+
+            // 버튼 클릭 이벤트 바인딩
+            voiceBtn.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop(); // 이미 녹음 중이면 중지
+                } else {
+                    recognition.start(); // 녹음 시작
+                }
+            });
+
+        } else {
+            // Web Speech API를 지원하지 않는 브라우저의 경우
+            voiceBtn.addEventListener('click', () => {
+                alert("현재 사용 중인 브라우저에서는 음성 인식 기능을 지원하지 않습니다. 크롬(Chrome) 브라우저를 이용해주세요.");
+            });
+        }
+
+        // ==========================================
+        // 2. AI 일기 분석 요청 기능 (백엔드 연동)
+        // ==========================================
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const aiResponseBox = document.getElementById('ai-response');
+
+        analyzeBtn.addEventListener('click', async () => {
+            const text = diaryInput.value.trim();
+            if (!text) {
+                alert("먼저 오늘의 일기나 느낀 점을 입력해주세요.");
+                diaryInput.focus();
+                return;
+            }
+
+            // 분석 진행 중 UI 변경
+            analyzeBtn.innerText = '✨ 분석 중...';
+            analyzeBtn.disabled = true;
+            analyzeBtn.style.cursor = 'not-allowed';
+            analyzeBtn.style.opacity = '0.7';
+            aiResponseBox.innerText = 'AI가 일기를 신중하게 읽고 위로를 준비 중입니다... 잠시만 기다려주세요.';
+
+            try {
+                // 안전한 Vercel 백엔드 함수 호출
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || '분석 중 서버 오류가 발생했습니다.');
+                }
+
+                // AI의 응답 화면에 출력
+                aiResponseBox.innerText = data.result;
+            } catch (error) {
+                console.error("AI 연동 오류:", error);
+                aiResponseBox.innerText = `오류 발생: ${error.message}\n(API 키 설정이나 서버 상태를 확인해주세요.)`;
+            } finally {
+                // 버튼 상태 복구
+                analyzeBtn.innerText = '✨ 분석 요청하기';
+                analyzeBtn.disabled = false;
+                analyzeBtn.style.cursor = 'pointer';
+                analyzeBtn.style.opacity = '1';
+            }
+        });
+    </script>
+</body>
+</html>
