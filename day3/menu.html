@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>오늘의 점심 메뉴 투표</title>
-    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
             --primary-color: #81c784;
@@ -14,7 +16,8 @@
             --glass-border: rgba(255, 255, 255, 0.8);
         }
 
-        body, html {
+        body,
+        html {
             height: 100%;
             margin: 0;
             font-family: 'Pretendard', sans-serif;
@@ -32,7 +35,7 @@
             color: white;
             padding: 1.5rem 0;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             margin-bottom: 3rem;
         }
 
@@ -51,7 +54,7 @@
             border: 1px solid var(--glass-border);
             border-radius: 40px;
             padding: 3rem;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
             text-align: center;
             animation: slideUp 0.8s ease-out;
         }
@@ -79,14 +82,14 @@
             padding: 1.5rem;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.02);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02);
             font-weight: 600;
             font-size: 1.1rem;
         }
 
         .menu-item:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
             border-color: var(--primary-color);
         }
 
@@ -120,7 +123,8 @@
         .result-section {
             margin-top: 3rem;
             text-align: left;
-            display: none; /* 투표 전에는 숨김 */
+            display: none;
+            /* 투표 전에는 숨김 */
             animation: fadeIn 0.5s ease;
         }
 
@@ -150,25 +154,39 @@
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
 
         @media (max-width: 480px) {
             .menu-grid {
                 grid-template-columns: 1fr;
             }
+
             .container {
                 padding: 2rem 1.5rem;
             }
         }
     </style>
 </head>
+
 <body>
     <header class="header">
         <h2>점심 투표 서비스</h2>
@@ -176,7 +194,7 @@
 
     <div class="container">
         <h1>🍱 오늘의 점심 메뉴는?</h1>
-        
+
         <div class="menu-grid" id="menu-grid">
             <div class="menu-item" data-menu="김밥">김밥 🍙</div>
             <div class="menu-item" data-menu="제육볶음">제육볶음 🥘</div>
@@ -197,7 +215,7 @@
         const voteBtn = document.getElementById('vote-btn');
         const resultSection = document.getElementById('result-section');
         const resultsContainer = document.getElementById('results-container');
-        
+
         let selectedMenu = null;
         let votes = {
             '김밥': 0,
@@ -233,7 +251,7 @@
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].replace(/"/g, ''); // 따옴표 제거
                 if (!line) continue;
-                
+
                 const columns = line.split(',');
                 const menuName = columns[1] ? columns[1].trim() : null; // B열 (menu)
 
@@ -277,11 +295,11 @@
                     mode: 'no-cors',
                     body: formData
                 });
-                
+
                 // 성공 UI 업데이트
                 voteBtn.innerText = '투표 완료!';
                 voteBtn.style.cursor = 'default';
-                
+
                 // 구글 시트에 데이터가 반영될 시간을 약간 준 후 데이터 리로드
                 setTimeout(() => {
                     loadVotesFromSheet(true);
@@ -290,7 +308,7 @@
             } catch (error) {
                 console.error('투표 중 오류:', error);
                 alert('네트워크 오류가 발생했습니다. 다시 시도해주세요.');
-                
+
                 // 상태 롤백
                 voteBtn.disabled = false;
                 voteBtn.innerText = '투표하기';
@@ -306,7 +324,7 @@
             Object.keys(votes).forEach(menu => {
                 const count = votes[menu];
                 const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
-                
+
                 const resultItem = document.createElement('div');
                 resultItem.className = 'result-item';
                 resultItem.innerHTML = `
@@ -326,7 +344,7 @@
             });
 
             resultSection.style.display = 'block';
-            
+
             if (shouldScroll) {
                 window.scrollTo({
                     top: document.body.scrollHeight,
@@ -336,4 +354,5 @@
         }
     </script>
 </body>
+
 </html>

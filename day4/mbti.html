@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MBTI 성격 유형 테스트</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        :root {
+            --primary-color: #7b61ff; /* MBTI 느낌에 어울리는 세련된 보라색 */
+            --primary-hover: #5a3fdf;
+            --bg-gradient: linear-gradient(135deg, #f0f3f5 0%, #e1e8ed 100%);
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --text-main: #2d3436;
+            --text-sub: #636e72;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: 'Pretendard', sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            text-align: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 4rem 3rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            max-width: 500px;
+            width: 90%;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        p.description {
+            font-size: 1.1rem;
+            color: var(--text-sub);
+            margin-bottom: 3rem;
+            line-height: 1.5;
+            word-break: keep-all; /* 한글 단어 끊김 방지 */
+        }
+
+        .start-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1.2rem 3rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(123, 97, 255, 0.3);
+            width: 100%;
+        }
+
+        .start-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 20px rgba(90, 63, 223, 0.4);
+        }
+
+        .start-btn:active {
+            transform: translateY(1px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="start-screen">
+        <h1>나의 진짜 성격은?</h1>
+        <p class="description">8개의 간단한 질문으로 알아보는<br>나의 MBTI 유형</p>
+        <button class="start-btn" id="start-btn">테스트 시작하기</button>
+    </div>
+</body>
+</html>
