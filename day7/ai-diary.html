@@ -376,8 +376,26 @@
         <div class="mt-12 pt-8 border-t-[2px] border-dashed border-[#dcdde1]">
             <div class="bg-gray-50 rounded-2xl shadow-md overflow-hidden flex flex-col h-[500px] border border-gray-200">
                 <!-- 고정 헤더 -->
-                <div class="bg-white px-6 py-4 border-b border-gray-200 z-10 shadow-sm">
+                <div class="bg-white px-6 py-4 border-b border-gray-200 z-10 shadow-sm flex justify-between items-center">
                     <h2 class="text-xl font-extrabold text-gray-800 flex items-center gap-2 m-0">💬 실시간 채팅</h2>
+                    
+                    <!-- 프로필 섹션 -->
+                    <div class="flex items-center gap-3">
+                        <div class="flex flex-col items-end">
+                            <span id="chat-header-email" class="text-sm font-bold text-gray-700"></span>
+                            <button id="change-photo-btn" class="text-xs text-blue-500 hover:text-blue-700 hover:underline">사진 변경</button>
+                        </div>
+                        <div class="relative cursor-pointer group flex items-center justify-center w-11 h-11 bg-gray-100 rounded-full border-2 border-gray-200 shadow-sm hover:border-blue-400 transition-colors" onclick="document.getElementById('profile-upload').click()">
+                            <!-- 기본 아이콘 -->
+                            <svg id="profile-default-icon" class="w-7 h-7 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                            <!-- 사용자 사진 (업로드 시 표시) -->
+                            <img id="profile-img" src="" class="absolute inset-0 w-full h-full rounded-full object-cover hidden">
+                            
+                            <input type="file" id="profile-upload" class="hidden" accept="image/*">
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- 스크롤 가능한 메시지 영역 -->
@@ -452,6 +470,8 @@
             if (session && session.user) {
                 currentUserEmail = session.user.email;
                 document.getElementById('user-email-display').innerText = session.user.email;
+                const headerEmail = document.getElementById('chat-header-email');
+                if (headerEmail) headerEmail.innerText = session.user.email;
             }
             
             loadHistory(); // 일기장 화면이 열릴 때 히스토리 불러오기
@@ -810,6 +830,35 @@
                 })
                 .subscribe();
         }
+
+        // ==========================================
+        // 6. 프로필 사진 기능 (임시 로컬 미리보기)
+        // ==========================================
+        const profileUpload = document.getElementById('profile-upload');
+        const changePhotoBtn = document.getElementById('change-photo-btn');
+        const profileImg = document.getElementById('profile-img');
+        const defaultIcon = document.getElementById('profile-default-icon');
+
+        profileUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // 파일을 읽어서 브라우저에 바로 미리보기 표시
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                profileImg.src = event.target.result;
+                profileImg.classList.remove('hidden');
+                defaultIcon.classList.add('hidden');
+                
+                // TODO: Supabase Storage에 파일 업로드 기능 추가 예정
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // 텍스트 버튼을 눌러도 파일 선택창이 뜨도록 연결
+        changePhotoBtn.addEventListener('click', () => {
+            profileUpload.click();
+        });
 
         // 페이지 로드 시 가장 먼저 인증 초기화 시작
         window.addEventListener('DOMContentLoaded', initAuth);
