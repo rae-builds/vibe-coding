@@ -171,6 +171,13 @@
             border: 1px solid rgba(0,0,0,0.03);
         }
 
+        .chat-email {
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+            opacity: 0.7;
+            word-break: break-all;
+        }
+
         /* 반응형 */
         @media (max-width: 480px) {
             .container {
@@ -497,15 +504,20 @@
             diaryView.style.display = 'none';
         }
 
+        let currentUserEmail = '';
+
         function showDiary(session) {
             loginView.style.display = 'none';
             diaryView.style.display = 'block';
             
             if (session && session.user) {
+                currentUserEmail = session.user.email;
                 document.getElementById('user-email-display').innerText = session.user.email;
             }
             
             loadHistory(); // 일기장 화면이 열릴 때 히스토리 불러오기
+            loadMessages(); // 기존 채팅 메시지 불러오기
+            subscribeToMessages(); // 실시간 채팅 구독 시작
         }
 
         // 로그인 버튼 클릭
@@ -787,6 +799,65 @@
                 sendMessage();
             }
         });
+
+        // 5. 채팅 렌더링 및 실시간 기능
+        let chatSubscription = null;
+
+        function renderMessage(msg) {
+            // 첫 안내 메시지 지우기
+            if (chatBox.innerHTML.includes('첫 채팅을 남겨보세요!')) {
+                chatBox.innerHTML = '';
+            }
+
+            const isMe = msg.user_email === currentUserEmail;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-message ${isMe ? 'user' : 'ai'}`;
+            
+            const emailDiv = document.createElement('div');
+            emailDiv.className = 'chat-email';
+            emailDiv.innerText = msg.user_email;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.innerText = msg.content;
+            
+            msgDiv.appendChild(emailDiv);
+            msgDiv.appendChild(contentDiv);
+            
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight; // 스크롤 맨 아래로 이동
+        }
+
+        async function loadMessages() {
+            chatBox.innerHTML = '<div class="loading-history">채팅을 불러오는 중...</div>';
+            const { data: messages, error } = await supabaseClient
+                .from('messages')
+                .select('*')
+                .order('created_at', { ascending: true })
+                .limit(50); // 최근 50개만 표시
+                
+            if (error) {
+                console.error("채팅 로딩 에러:", error);
+                chatBox.innerHTML = '<div class="loading-history" style="color:red;">채팅을 불러오지 못했습니다.</div>';
+                return;
+            }
+            
+            chatBox.innerHTML = '';
+            if (!messages || messages.length === 0) {
+                chatBox.innerHTML = '<div class="chat-message ai">아직 작성된 메시지가 없습니다. 첫 채팅을 남겨보세요! 😊</div>';
+            } else {
+                messages.forEach(msg => renderMessage(msg));
+            }
+        }
+
+        function subscribeToMessages() {
+            if (chatSubscription) return; // 이미 구독 중이면 중복 방지
+            
+            chatSubscription = supabaseClient.channel('custom-all-channel')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                    renderMessage(payload.new);
+                })
+                .subscribe();
+        }
 
         // 페이지 로드 시 가장 먼저 인증 초기화 시작
         window.addEventListener('DOMContentLoaded', initAuth);
