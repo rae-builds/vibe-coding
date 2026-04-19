@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import { supabaseAdmin } from '../lib/supabase.js';
 
 // Serverless 환경에서 재사용하기 위해 밖에서 선언
 let redisClient = null;
@@ -9,6 +10,22 @@ export default async function handler(req, res) {
     }
 
     try {
+        // 1. 토큰 추출 및 검증
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: '인증 토큰이 없습니다. 다시 로그인해주세요.' });
+        }
+        const token = authHeader.split(' ')[1];
+
+        if (!supabaseAdmin) {
+            return res.status(500).json({ error: '서버 인증 모듈(SUPABASE_SERVICE_ROLE_KEY)이 설정되지 않았습니다.' });
+        }
+
+        const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+        if (authError || !user) {
+            return res.status(401).json({ error: '유효하지 않은 토큰입니다. 다시 로그인해주세요.' });
+        }
+
         if (!process.env.REDIS_URL) {
             return res.status(500).json({ error: 'REDIS_URL 환경변수가 로드되지 않았습니다.' });
         }
@@ -26,10 +43,10 @@ export default async function handler(req, res) {
         let cursor = '0';
         let allKeys = [];
 
-        // 1. SCAN 명령어를 통해 diary-* 패턴을 가진 모든 키 검색 (안전한 방식)
+        // 1. SCAN 명령어를 통해 로그인된 사용자의 일기 키만 검색
         do {
             const reply = await redisClient.scan(cursor, {
-                MATCH: 'diary-*',
+                MATCH: `user:${user.id}:diary:*`,
                 COUNT: 100
             });
             cursor = reply.cursor.toString(); // 다음 커서도 문자열로 보장

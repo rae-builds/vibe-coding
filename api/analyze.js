@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import { supabaseAdmin } from '../lib/supabase.js';
 
 // Serverless 환경에서 재사용하기 위해 밖에서 선언
 let redisClient = null;
@@ -11,6 +12,22 @@ export default async function handler(req, res) {
     const { text } = req.body;
     if (!text) {
         return res.status(400).json({ error: '분석할 텍스트(일기)가 필요합니다.' });
+    }
+
+    // 1. 토큰 추출 및 검증
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: '인증 토큰이 없습니다. 다시 로그인해주세요.' });
+    }
+    const token = authHeader.split(' ')[1];
+
+    if (!supabaseAdmin) {
+        return res.status(500).json({ error: '서버 인증 모듈(SUPABASE_SERVICE_ROLE_KEY)이 설정되지 않았습니다.' });
+    }
+
+    const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !user) {
+        return res.status(401).json({ error: '유효하지 않은 토큰입니다. 다시 로그인해주세요.' });
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -47,7 +64,9 @@ export default async function handler(req, res) {
         // Redis에 저장할 데이터 준비
         const now = new Date();
         const timeString = now.toISOString().replace(/[-:T.]/g, '').slice(0, 14); // YYYYMMDDHHMMSS
-        const diaryKey = `diary-${timeString}`;
+        
+        // 사용자 고유 ID를 포함한 키 구조로 변경
+        const diaryKey = `user:${user.id}:diary:${timeString}`;
         
         const diaryEntry = {
             text: text,

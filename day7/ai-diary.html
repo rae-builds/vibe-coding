@@ -538,10 +538,20 @@
             aiResponseBox.innerText = 'AI가 일기를 신중하게 읽고 위로를 준비 중입니다... 잠시만 기다려주세요.';
 
             try {
+                // 현재 로그인된 사용자의 토큰 가져오기
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                const token = session?.access_token;
+                if (!token) {
+                    throw new Error('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+                }
+
                 // 안전한 Vercel 백엔드 함수 호출
                 const response = await fetch('/api/analyze', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ text })
                 });
 
@@ -573,7 +583,19 @@
         // ==========================================
         async function loadHistory() {
             try {
-                const response = await fetch('/api/history');
+                // 현재 로그인된 사용자의 토큰 가져오기
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                const token = session?.access_token;
+                if (!token) {
+                    // 비로그인 상태일 때는 히스토리를 불러오지 않음
+                    return;
+                }
+
+                const response = await fetch('/api/history', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
                 const data = await response.json();
 
                 if (!response.ok) {
