@@ -727,6 +727,67 @@
             }
         }
 
+        // ==========================================
+        // 4. 실시간 채팅: 메시지 전송 기능
+        // ==========================================
+        const chatInput = document.getElementById('chat-input');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatBox = document.getElementById('chat-box');
+
+        async function sendMessage() {
+            const content = chatInput.value.trim();
+            if (!content) return; // 빈 메시지는 무시
+
+            try {
+                // 현재 로그인된 사용자의 정보 가져오기
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) {
+                    alert('로그인이 만료되었습니다. 다시 로그인해주세요.');
+                    return;
+                }
+
+                const userEmail = session.user.email;
+
+                // 버튼 비활성화 (연타 방지)
+                chatSendBtn.disabled = true;
+                chatSendBtn.innerText = '전송 중...';
+
+                // Supabase 'messages' 테이블에 데이터 저장
+                const { error } = await supabaseClient
+                    .from('messages')
+                    .insert([
+                        { content: content, user_email: userEmail }
+                    ]);
+
+                if (error) {
+                    throw error;
+                }
+
+                // 전송 성공 시 입력창 깨끗하게 비우기
+                chatInput.value = '';
+
+                // 로컬 UI에 즉시 표시하는 기능은 아직 추가하지 않았음 (다음 단계에서 실시간 구독으로 처리)
+            } catch (error) {
+                console.error("메시지 전송 오류:", error);
+                alert("메시지 전송에 실패했습니다: " + error.message);
+            } finally {
+                // 버튼 상태 복구
+                chatSendBtn.disabled = false;
+                chatSendBtn.innerText = '전송';
+                chatInput.focus();
+            }
+        }
+
+        // 전송 버튼 클릭 시
+        chatSendBtn.addEventListener('click', sendMessage);
+
+        // 엔터 키를 눌렀을 때 전송되도록 이벤트 연결
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
         // 페이지 로드 시 가장 먼저 인증 초기화 시작
         window.addEventListener('DOMContentLoaded', initAuth);
     </script>
