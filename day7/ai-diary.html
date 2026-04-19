@@ -472,6 +472,15 @@
                 document.getElementById('user-email-display').innerText = session.user.email;
                 const headerEmail = document.getElementById('chat-header-email');
                 if (headerEmail) headerEmail.innerText = session.user.email;
+                
+                // 저장된 프로필 이미지가 있다면 불러오기
+                if (session.user.user_metadata && session.user.user_metadata.avatar_url) {
+                    const profileImg = document.getElementById('profile-img');
+                    const defaultIcon = document.getElementById('profile-default-icon');
+                    profileImg.src = session.user.user_metadata.avatar_url;
+                    profileImg.classList.remove('hidden');
+                    defaultIcon.classList.add('hidden');
+                }
             }
             
             loadHistory(); // 일기장 화면이 열릴 때 히스토리 불러오기
@@ -771,24 +780,43 @@
             const isMe = msg.user_email === currentUserEmail;
             
             const msgWrapper = document.createElement('div');
-            // Tailwind CSS를 활용한 우측/좌측 정렬
-            msgWrapper.className = `flex flex-col mb-5 ${isMe ? 'items-end' : 'items-start'}`;
+            // 가로 배치 레이아웃 (내 메시지는 오른쪽, 남의 메시지는 왼쪽)
+            msgWrapper.className = `flex gap-3 mb-5 ${isMe ? 'flex-row-reverse' : 'flex-row'}`;
+            
+            // 아바타 영역
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'flex-shrink-0 mt-1';
+            
+            // 고유 식별자 기반 아바타 URL 생성
+            const avatarUrl = supabaseClient.storage.from('avatars').getPublicUrl(`${msg.user_id}/avatar.png`).data.publicUrl;
+            // 404 에러 시 보여줄 기본 사람 모양 아이콘 (UI Avatars)
+            const fallbackSrc = `https://ui-avatars.com/api/?name=${msg.user_email.charAt(0)}&background=F3F4F6&color=9CA3AF`;
+            
+            // 이미지 태그 생성 (onerror 속성으로 기본 이미지 폴백 처리)
+            avatarDiv.innerHTML = `<img src="${avatarUrl}" onerror="this.src='${fallbackSrc}'" class="w-10 h-10 rounded-full object-cover border border-gray-200 shadow-sm bg-white">`;
+            
+            // 메시지 본문 컨테이너
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[75%]`;
             
             const emailDiv = document.createElement('div');
-            emailDiv.className = 'text-[0.7rem] text-gray-500 mb-1.5 px-2 opacity-80';
+            emailDiv.className = 'text-[0.7rem] text-gray-500 mb-1.5 px-1 opacity-80';
             emailDiv.innerText = msg.user_email;
             
             const bubbleDiv = document.createElement('div');
-            // 나와 남의 말풍선 스타일 완벽 분리
-            bubbleDiv.className = `max-w-[80%] px-4 py-3 rounded-2xl text-[0.95rem] leading-relaxed shadow-sm ${
+            // 나와 남의 말풍선 꼬리 방향을 다르게 적용 (rounded-tr-none vs rounded-tl-none)
+            bubbleDiv.className = `px-4 py-3 rounded-2xl text-[0.95rem] leading-relaxed shadow-sm ${
                 isMe 
-                ? 'bg-blue-500 text-white rounded-br-sm' 
-                : 'bg-white text-gray-800 rounded-bl-sm border border-gray-100'
+                ? 'bg-blue-500 text-white rounded-tr-none' 
+                : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'
             }`;
             bubbleDiv.innerText = msg.content;
             
-            msgWrapper.appendChild(emailDiv);
-            msgWrapper.appendChild(bubbleDiv);
+            contentWrapper.appendChild(emailDiv);
+            contentWrapper.appendChild(bubbleDiv);
+            
+            msgWrapper.appendChild(avatarDiv);
+            msgWrapper.appendChild(contentWrapper);
             
             chatBox.appendChild(msgWrapper);
             chatBox.scrollTop = chatBox.scrollHeight; // 스크롤 맨 아래로 이동
@@ -832,27 +860,66 @@
         }
 
         // ==========================================
-        // 6. 프로필 사진 기능 (임시 로컬 미리보기)
+        // 6. 프로필 사진 기능 (Supabase 연동)
         // ==========================================
         const profileUpload = document.getElementById('profile-upload');
         const changePhotoBtn = document.getElementById('change-photo-btn');
         const profileImg = document.getElementById('profile-img');
         const defaultIcon = document.getElementById('profile-default-icon');
 
-        profileUpload.addEventListener('change', function(e) {
+        profileUpload.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
             
-            // 파일을 읽어서 브라우저에 바로 미리보기 표시
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                profileImg.src = event.target.result;
+            try {
+                // UI 상태 변경
+                changePhotoBtn.innerText = '업로드 중...';
+                changePhotoBtn.disabled = true;
+
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) throw new Error("로그인이 필요합니다.");
+                
+                const userId = session.user.id;
+                // 요구사항대로 파일 경로를 '[user_id]/avatar.png'로 고정
+                const filePath = `${userId}/avatar.png`;
+
+                // ① Supabase Storage에 업로드 (upsert: true 로 기존 파일 덮어쓰기)
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('avatars')
+                    .upload(filePath, file, { upsert: true });
+                    
+                if (uploadError) throw uploadError;
+
+                // ② 공개 URL 가져오기 (이미지 캐싱 갱신을 위해 타임스탬프 쿼리 추가)
+                const { data } = supabaseClient.storage.from('avatars').getPublicUrl(filePath);
+                const publicUrl = data.publicUrl + '?t=' + new Date().getTime();
+
+                // ③ Auth 메타데이터 업데이트
+                const { error: updateError } = await supabaseClient.auth.updateUser({
+                    data: { avatar_url: publicUrl }
+                });
+                if (updateError) throw updateError;
+
+                // ④ 화면 상단 프로필 이미지 즉시 변경
+                profileImg.src = publicUrl;
                 profileImg.classList.remove('hidden');
                 defaultIcon.classList.add('hidden');
                 
-                // TODO: Supabase Storage에 파일 업로드 기능 추가 예정
-            };
-            reader.readAsDataURL(file);
+                // ⑤ 채팅 메시지 이미지 갱신을 위한 임시 꼼수 (화면 다시 그리기)
+                loadMessages();
+                
+                alert('프로필 사진이 성공적으로 변경되었습니다!');
+                
+            } catch (err) {
+                console.error("프로필 업로드 에러:", err);
+                alert("업로드 실패: " + err.message);
+            } finally {
+                // 버튼 원상복구
+                changePhotoBtn.innerText = '사진 변경';
+                changePhotoBtn.disabled = false;
+                // input file 초기화 (동일 파일 재선택 가능하게)
+                profileUpload.value = '';
+            }
         });
 
         // 텍스트 버튼을 눌러도 파일 선택창이 뜨도록 연결
