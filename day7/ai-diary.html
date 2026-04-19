@@ -320,11 +320,13 @@
         </div>
     </div>
 
-    <!-- 기존 일기 뷰 -->
     <div id="diary-view" class="container" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <h1 style="margin-bottom: 0;">오늘의 하루는 어땠나요?</h1>
-            <button id="logout-btn" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: bold; font-size: 0.9rem;">로그아웃</button>
+            <div style="text-align: right;">
+                <div id="user-email-display" style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 4px;"></div>
+                <button id="logout-btn" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-weight: bold; font-size: 0.9rem;">로그아웃</button>
+            </div>
         </div>
         
         <div class="input-group">
@@ -377,12 +379,12 @@
                 // 현재 세션(로그인 상태) 확인
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 
-                if (session) showDiary();
+                if (session) showDiary(session);
                 else showLogin();
 
                 // 로그인/로그아웃 상태가 바뀔 때 감지하여 화면 전환
                 supabaseClient.auth.onAuthStateChange((event, session) => {
-                    if (session) showDiary();
+                    if (session) showDiary(session);
                     else showLogin();
                 });
             } catch (err) {
@@ -396,9 +398,14 @@
             diaryView.style.display = 'none';
         }
 
-        function showDiary() {
+        function showDiary(session) {
             loginView.style.display = 'none';
             diaryView.style.display = 'block';
+            
+            if (session && session.user) {
+                document.getElementById('user-email-display').innerText = session.user.email;
+            }
+            
             loadHistory(); // 일기장 화면이 열릴 때 히스토리 불러오기
         }
 
