@@ -818,13 +818,35 @@
             emailDiv.innerText = msg.user_email;
             
             const bubbleDiv = document.createElement('div');
-            // 나와 남의 말풍선 꼬리 방향을 다르게 적용 (rounded-tr-none vs rounded-tl-none)
-            bubbleDiv.className = `px-4 py-3 rounded-2xl text-[0.95rem] leading-relaxed shadow-sm ${
-                isMe 
-                ? 'bg-blue-500 text-white rounded-tr-none' 
-                : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'
-            }`;
-            bubbleDiv.innerText = msg.content;
+            
+            // 이미지 메시지인지 확인 ([IMAGE]URL[/IMAGE] 형식)
+            let isImage = false;
+            let contentHtml = '';
+            
+            if (msg.content.startsWith('[IMAGE]') && msg.content.endsWith('[/IMAGE]')) {
+                isImage = true;
+                const imgUrl = msg.content.substring(7, msg.content.length - 8);
+                // 이미지 태그 렌더링 (onerror 추가)
+                contentHtml = `<img src="${imgUrl}" class="max-w-[200px] sm:max-w-[250px] rounded-xl shadow-md border border-gray-200" onerror="this.onerror=null; this.parentElement.innerText='⚠️ 이미지를 불러올 수 없습니다.'; this.parentElement.className='text-red-500 text-sm bg-red-50 p-3 rounded-xl'">`;
+            } else {
+                // 일반 텍스트 렌더링 (XSS 방지)
+                const tempDiv = document.createElement('div');
+                tempDiv.innerText = msg.content;
+                contentHtml = tempDiv.innerHTML;
+            }
+
+            // 이미지일 때는 말풍선 배경과 패딩을 없앰
+            if (isImage) {
+                bubbleDiv.className = 'mt-1 cursor-pointer hover:opacity-90 transition-opacity';
+            } else {
+                bubbleDiv.className = `px-4 py-3 rounded-2xl text-[0.95rem] leading-relaxed shadow-sm ${
+                    isMe 
+                    ? 'bg-blue-500 text-white rounded-tr-none' 
+                    : 'bg-white text-gray-800 rounded-tl-none border border-gray-100'
+                }`;
+            }
+            
+            bubbleDiv.innerHTML = contentHtml;
             
             contentWrapper.appendChild(emailDiv);
             contentWrapper.appendChild(bubbleDiv);
@@ -872,6 +894,62 @@
                 })
                 .subscribe();
         }
+
+        // ==========================================
+        // 5.5 채팅 이미지 업로드 (클립 버튼)
+        // ==========================================
+        const chatImageUpload = document.getElementById('chat-image-upload');
+        const chatAttachBtn = document.getElementById('chat-attach-btn');
+
+        chatImageUpload.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                // UI 상태 변경 (버튼 비활성화 및 깜빡임 효과)
+                chatAttachBtn.classList.add('opacity-50', 'cursor-not-allowed', 'animate-pulse');
+                chatAttachBtn.disabled = true;
+
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) throw new Error("로그인이 필요합니다.");
+
+                const userEmail = session.user.email;
+                const fileExt = file.name.split('.').pop();
+                // 고유한 파일명 생성 (타임스탬프 + 난수)
+                const fileName = `${new Date().getTime()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                // 1. Supabase Storage 'chat-images' 버킷에 업로드
+                const { error: uploadError } = await supabaseClient.storage
+                    .from('chat-images')
+                    .upload(fileName, file);
+
+                if (uploadError) throw uploadError;
+
+                // 2. 업로드된 파일의 Public URL 가져오기
+                const { data } = supabaseClient.storage.from('chat-images').getPublicUrl(fileName);
+                const publicUrl = data.publicUrl;
+
+                // 3. 메시지 텍스트를 '[IMAGE]URL[/IMAGE]' 특수 포맷으로 만들어서 전송
+                const messageContent = `[IMAGE]${publicUrl}[/IMAGE]`;
+                
+                const { error: insertError } = await supabaseClient
+                    .from('messages')
+                    .insert([{ content: messageContent, user_email: userEmail }]);
+
+                if (insertError) throw insertError;
+                
+                // 삽입이 완료되면 실시간 구독(Realtime)에 의해 화면에 자동으로 그려집니다.
+                
+            } catch (err) {
+                console.error("채팅 이미지 전송 에러:", err);
+                alert("이미지 전송에 실패했습니다: " + err.message);
+            } finally {
+                // UI 복구
+                chatAttachBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'animate-pulse');
+                chatAttachBtn.disabled = false;
+                chatImageUpload.value = ''; // 입력창 초기화
+            }
+        });
 
         // ==========================================
         // 6. 프로필 사진 기능 (Supabase 연동)
