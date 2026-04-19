@@ -432,7 +432,12 @@
 
         // 구글 로그인 버튼 클릭
         document.getElementById('google-btn').addEventListener('click', async () => {
-            const { error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
+            const { error } = await supabaseClient.auth.signInWithOAuth({ 
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.href // 현재 로그인 창(ai-diary.html)으로 다시 돌아오도록 고정
+                }
+            });
             if (error) alert('구글 로그인 오류: ' + error.message);
         });
 
