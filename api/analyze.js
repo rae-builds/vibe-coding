@@ -1,3 +1,8 @@
+import { createClient } from 'redis';
+
+// Serverless 환경에서 재사용하기 위해 밖에서 선언
+let redisClient = null;
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed. POST 방식만 허용됩니다.' });
@@ -38,6 +43,41 @@ export default async function handler(req, res) {
 
         const data = await response.json();
         const aiResponse = data.candidates[0].content.parts[0].text;
+
+        // Redis에 저장할 데이터 준비
+        const now = new Date();
+        const timeString = now.toISOString().replace(/[-:T.]/g, '').slice(0, 14); // YYYYMMDDHHMMSS
+        const diaryKey = `diary-${timeString}`;
+        
+        const diaryEntry = {
+            text: text,
+            aiResponse: aiResponse,
+            timestamp: now.toISOString()
+        };
+
+        try {
+            if (!redisClient) {
+                // REDIS_URL 환경변수 존재 여부 먼저 체크
+                if (!process.env.REDIS_URL) {
+                    throw new Error("REDIS_URL 환경변수가 로드되지 않았습니다. .env 파일을 확인하거나 터미널을 재시작하세요.");
+                }
+                const isRediss = process.env.REDIS_URL.startsWith('rediss://');
+                redisClient = createClient({
+                    url: process.env.REDIS_URL,
+                    // redis:// 일 때는 tls 속성을 아예 주지 않고, rediss:// 일 때만 적용 또는 생략(라이브러리가 알아서 처리)
+                    ...(isRediss ? { socket: { tls: true } } : {})
+                });
+                redisClient.on('error', (err) => console.error('Redis Client Error', err));
+                await redisClient.connect();
+            }
+            
+            // Redis에 데이터 저장
+            await redisClient.set(diaryKey, JSON.stringify(diaryEntry));
+            console.log(`[Redis 저장 완료] Key: ${diaryKey}`);
+        } catch (redisError) {
+            console.error('Redis 저장 실패:', redisError);
+            // 저장이 실패해도 사용자에게 응답은 주어야 하므로 진행
+        }
 
         // 프론트엔드로 성공적인 분석 결과 반환
         return res.status(200).json({ result: aiResponse });
