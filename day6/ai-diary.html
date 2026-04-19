@@ -181,6 +181,72 @@
             h1 {
                 font-size: 1.7rem;
             }
+        /* 히스토리 섹션 스타일 */
+        .history-section {
+            margin-top: 3rem;
+            padding-top: 2.5rem;
+            border-top: 2px dashed var(--border-color);
+        }
+        
+        .history-section h2 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-weight: 800;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .history-card {
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+            transition: transform 0.3s ease;
+        }
+
+        .history-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.04);
+        }
+
+        .history-date {
+            font-size: 0.9rem;
+            color: #b2bec3;
+            margin-bottom: 0.8rem;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .history-my-text {
+            font-size: 1.05rem;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            padding-left: 1rem;
+            border-left: 4px solid var(--primary-color);
+            word-break: break-word;
+        }
+
+        .history-ai-response {
+            background-color: var(--box-bg);
+            padding: 1.2rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+        }
+        
+        .loading-history {
+            text-align: center;
+            color: var(--text-sub);
+            padding: 2rem 0;
         }
     </style>
 </head>
@@ -208,11 +274,19 @@
                 여기에 AI의 답변이 표시됩니다.
             </div>
         </div>
+
+        <div class="history-section">
+            <h2>📔 나의 일기 히스토리</h2>
+            <div id="history-list" class="history-list">
+                <div class="loading-history">히스토리를 불러오는 중입니다...</div>
+            </div>
+        </div>
     </div>
 
     <script>
         const voiceBtn = document.getElementById('voice-btn');
         const diaryInput = document.getElementById('diary-input');
+        const historyList = document.getElementById('history-list');
         
         let isRecording = false;
 
@@ -317,6 +391,9 @@
 
                 // AI의 응답 화면에 출력
                 aiResponseBox.innerText = data.result;
+                
+                // 일기 작성 후 히스토리 자동 갱신
+                await loadHistory();
             } catch (error) {
                 console.error("AI 연동 오류:", error);
                 aiResponseBox.innerText = `오류 발생: ${error.message}\n(API 키 설정이나 서버 상태를 확인해주세요.)`;
@@ -328,6 +405,46 @@
                 analyzeBtn.style.opacity = '1';
             }
         });
+
+        // ==========================================
+        // 3. 일기 히스토리 불러오기 기능
+        // ==========================================
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || '히스토리 로딩 실패');
+                }
+
+                if (!data.history || data.history.length === 0) {
+                    historyList.innerHTML = '<div class="loading-history">아직 작성된 일기가 없습니다. 첫 일기를 남겨보세요!</div>';
+                    return;
+                }
+
+                // 히스토리 카드 렌더링
+                historyList.innerHTML = data.history.map(item => {
+                    const dateObj = new Date(item.timestamp);
+                    const dateString = `${dateObj.getFullYear()}년 ${dateObj.getMonth() + 1}월 ${dateObj.getDate()}일 ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                    
+                    return `
+                        <div class="history-card">
+                            <div class="history-date">${dateString}</div>
+                            <div class="history-my-text">${item.text}</div>
+                            <div class="history-ai-response">${item.aiResponse.replace(/\n/g, '<br>')}</div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('History load error:', error);
+                historyList.innerHTML = `<div class="loading-history" style="color: #e74c3c;">히스토리를 불러오지 못했습니다. (${error.message})</div>`;
+            }
+        }
+
+        // 페이지 로드 시 히스토리 불러오기
+        window.addEventListener('DOMContentLoaded', loadHistory);
     </script>
 </body>
 </html>
