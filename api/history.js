@@ -23,7 +23,7 @@ export default async function handler(req, res) {
             await redisClient.connect();
         }
 
-        let cursor = 0;
+        let cursor = '0';
         let allKeys = [];
 
         // 1. SCAN 명령어를 통해 diary-* 패턴을 가진 모든 키 검색 (안전한 방식)
@@ -32,9 +32,9 @@ export default async function handler(req, res) {
                 MATCH: 'diary-*',
                 COUNT: 100
             });
-            cursor = reply.cursor;
+            cursor = reply.cursor.toString(); // 다음 커서도 문자열로 보장
             allKeys.push(...reply.keys);
-        } while (cursor !== 0);
+        } while (cursor !== '0');
 
         // 일기가 하나도 없는 경우 빈 배열 반환
         if (allKeys.length === 0) {
