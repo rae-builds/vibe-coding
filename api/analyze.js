@@ -1,5 +1,5 @@
 import { createClient } from 'redis';
-import { supabaseAdmin } from '../lib/supabase.js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
 // Serverless 환경에서 재사용하기 위해 밖에서 선언
 let redisClient = null;
@@ -21,9 +21,15 @@ export default async function handler(req, res) {
     }
     const token = authHeader.split(' ')[1];
 
-    if (!supabaseAdmin) {
-        return res.status(500).json({ error: '서버 인증 모듈(SUPABASE_SERVICE_ROLE_KEY)이 설정되지 않았습니다.' });
+    // Vercel 환경변수 로딩 시점 보장을 위해 내부에서 직접 초기화
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !serviceRoleKey) {
+        return res.status(500).json({ error: '서버 인증 모듈(SUPABASE_SERVICE_ROLE_KEY 또는 SUPABASE_URL)이 설정되지 않았습니다.' });
     }
+    
+    const supabaseAdmin = createSupabaseClient(supabaseUrl, serviceRoleKey);
 
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
